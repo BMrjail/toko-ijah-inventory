@@ -180,6 +180,7 @@ func (idb *InDB) BarangKeluar(c *gin.Context) {
 
 func (idb *InDB) NilaiBarang(c *gin.Context) {
 	//file, _ := os.Create("path/file/sales.csv")
+	var result gin.H
 	var searchkeytemp structs.Searchkeytemp
 	var omzet,laba string
 	var start,end string
@@ -201,9 +202,6 @@ func (idb *InDB) NilaiBarang(c *gin.Context) {
 	helper.CheckError("Cannot create file", err)
 	defer file.Close()
 
-	println("SELECT bs.sku,bs.nama_barang,bs.stok,(sum(pb.harga_beli) / stok ) as rata, (sum(pb.harga_beli) / stok ) * bs.stok as total " +
-		"FROM barangs bs inner join pembelians pb on bs.sku = bs.sku")
-
 	rows, err := idb.DB.Raw("SELECT bs.sku,bs.nama_barang,bs.stok,(sum(pb.harga_beli) / stok ) as rata, (sum(pb.harga_beli) / stok ) * bs.stok as total " +
 		"FROM barangs bs inner join pembelians pb on bs.sku = bs.sku").Rows() // (*sql.Rows, error)
 	defer rows.Close()
@@ -223,6 +221,10 @@ func (idb *InDB) NilaiBarang(c *gin.Context) {
 	writer.WriteAll(data)
 	defer writer.Flush()
 
+	result = gin.H{
+		"result": "Laporan Nilai Barang Berhasil Dibuat",
+	}
+	c.JSON(http.StatusOK, result)
 
 }
 
@@ -232,6 +234,7 @@ func (idb *InDB) LaporanPenjualan(c *gin.Context) {
 	var omzet,laba string
 	var start string
 	var Rekap structs.Rekapitulasi_penjualan
+	var result gin.H
 
 	c.BindJSON(&searchkeytemp)
 	created_date := time.Now()
@@ -272,9 +275,6 @@ func (idb *InDB) LaporanPenjualan(c *gin.Context) {
 	helper.CheckError("Cannot create file", err)
 	defer file.Close()
 
-	println("SELECT invoice_penjualan,pj.created_at,pj.sku,pj.nama_barang,pj.qty,pj.harga_jual,pj.total,pb.harga_beli,(pj.harga_jual - pb.harga_beli) as laba" +
-		" FROM penjualans pj inner join pembelians pb on pj.sku = pb.sku where pj.created_at >= '"+start+"' and created_at <= '"+end+"' GROUP by invoice_penjualan")
-
 	rows, err := idb.DB.Raw("SELECT invoice_penjualan,pj.created_at,pj.sku,pj.nama_barang,pj.qty,pj.harga_jual,pj.total,pb.harga_beli,(pj.harga_jual - pb.harga_beli) as laba" +
 		" FROM penjualans pj inner join pembelians pb on pj.sku = pb.sku where pj.created_at >= '"+start+"' and created_at <= '"+end+"' GROUP by invoice_penjualan").Rows() // (*sql.Rows, error)
 	defer rows.Close()
@@ -295,9 +295,14 @@ func (idb *InDB) LaporanPenjualan(c *gin.Context) {
 
 	}
 
+
 	writer := csv.NewWriter(file)
 	writer.WriteAll(data)
 	defer writer.Flush()
 
+	result = gin.H{
+		"result": "Laporan Penjualan Barang Berhasil Dibuat",
+	}
+	c.JSON(http.StatusOK, result)
 
 }
