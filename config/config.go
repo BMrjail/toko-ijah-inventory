@@ -8,7 +8,7 @@ import (
 // DBInit create connection to database
 func DBInit() *gorm.DB {
 
-		db, err := gorm.Open("sqlite3", "/opt/go/src/toko-ijah/toko_ijah.db")
+		db, err := gorm.Open("sqlite3", "toko_ijah.db")
 
 		//db, err := gorm.Open("mysql", "root:@tcp(127.0.0.1:3306)/pet?charset=utf8&parseTime=True&loc=Local")
 		if err != nil {
